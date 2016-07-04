@@ -10,7 +10,7 @@ from QNetwork_theanets import QValueNetwork
 
 MAX_GAME_STEPS = 400
 MAX_SIM_STEPS = 6000
-NUM_ROLLOUTS = 5
+NUM_ROLLOUTS = 20
 EPSILON = 0.1
 MAX_EPISODES = 5
 
