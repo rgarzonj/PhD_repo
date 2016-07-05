@@ -7,6 +7,8 @@ import time
 from QValueFunction import QValueFunction
 from skdata.tests.test_caltech import counts_101
 from joblib import Parallel, delayed
+from util import saveContents
+from util import loadContents
 
 MAX_GAME_STEPS = 8000
 MAX_SIM_STEPS = 4000
@@ -86,8 +88,10 @@ def PlayGame():
         counting = np.zeros(envir.action_space.n)
 #         #Run N simulated games for i = 1 . . . N do    
         qFunction = QValueFunction(envir.action_space.n,nextState.shape[0])
+        saveContents(envir,'frozenEnvironment.pckl')
         for i in range(NUM_ROLLOUTS):
-            frozenEnv = copy.copy(envir)
+            frozenEnv = loadContents('frozenEnvironment.pckl')
+            #frozenEnv = copy.copy(envir)
             print 'Starting simulation %d' %i
             a_i,r_i = SimulateGame(frozenEnv,nextState,qFunction,i)
             #print a_i

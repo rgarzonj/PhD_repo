@@ -10,7 +10,7 @@ class QValueNetwork:
     P_MAX = 0.5;
     V_MIN = -0.07;
     V_MAX = 0.07;
-    INPUT_LAYER_SIZE = 5
+    INPUT_LAYER_SIZE = 3
     N_HIDDEN_1 = 5
     N_HIDDEN_2 = 5
     
@@ -22,11 +22,11 @@ class QValueNetwork:
         #self.weights = -2500*np.random.rand(dim_states+num_actions)
         #self.weights = 1000*np.random.randn(dim_states+num_actions)
         self.weights = np.random.randn(dim_states+ dim_states + dim_states + num_actions)
-        self.trainSet = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2','Q'])
+        self.trainSet = pd.DataFrame(columns=['Pos','Vel','Action','Q'])
         self.net = theanets.Regressor(layers=[self.INPUT_LAYER_SIZE,self.N_HIDDEN_1,1])
         
     def trainNetwork(self):
-        print 'Training network'
+        print 'Training network with the following train set'
         trainData = self.trainSet.drop('Q',axis=1)
         labels = self.trainSet['Q'].values.astype('float64')
         train = trainData.values,labels[:, None]
@@ -38,7 +38,8 @@ class QValueNetwork:
         
     def resetTrainSet(self):
         print 'Reset trainset'
-        self.trainSet = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2','Q'])       
+        #self.trainSet = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2','Q'])       
+        self.trainSet = pd.DataFrame(columns=['Pos','Vel','Action','Q'])       
         #print self.trainSet
     def resetNetwork(self):
         print 'Reset Q network'
@@ -52,11 +53,13 @@ class QValueNetwork:
 #        print action
 #        print state
         #f = state
-        onerow = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2'])
+        #onerow = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2'])
+        onerow = pd.DataFrame(columns=['Pos','Vel','Action'])
 #        a = np.zeros(self.num_actions)
 #        a[action] = 1
         #f = np.concatenate((f,a),axis=0)
-        f = {'Pos':state[0],'Vel':state[1],'A0':int(action==0),'A1': int(action==1),'A2' : int(action==2)}
+        #f = {'Pos':state[0],'Vel':state[1],'A0':int(action==0),'A1': int(action==1),'A2' : int(action==2)}
+        f = {'Pos':state[0],'Vel':state[1],'Action':action}
  #       print f
         onerow = onerow.append(f,ignore_index=True)
         q = self.net.predict(onerow)
@@ -67,7 +70,8 @@ class QValueNetwork:
         #Add one sample to the train dataset
         #a = np.zeros(self.num_actions)
         #a[action] = 1
-        onerow = {'Pos':state[0],'Vel':state[1],'A0':int(action==0),'A1': int(action==1),'A2' : int(action==2), 'Q':observedUtility}
+        #onerow = {'Pos':state[0],'Vel':state[1],'A0':int(action==0),'A1': int(action==1),'A2' : int(action==2), 'Q':observedUtility}
+        onerow = {'Pos':state[0],'Vel':state[1],'Action':action, 'Q':observedUtility}
         #print onerow
         self.trainSet = self.trainSet.append(onerow,ignore_index=True)
         #print self.trainSet

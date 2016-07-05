@@ -9,19 +9,20 @@
 import sys
 import inspect
 import heapq, random
+import cPickle as pickle
 
 
 """
  Data structures useful for implementing SearchAgents
 """
 def saveContents(theContents,theFile):
-    print 'Saving contents of file ' + theFile
+#    print 'Saving contents of file ' + theFile
     f = open(theFile, 'w')
     pickle.dump(theContents, f)
     f.close()
 
 def loadContents(theFile):
-    print 'Loading contents of file ' + theFile
+#    print 'Loading contents of file ' + theFile
     f = open(theFile)
     theData = pickle.load(f)
     f.close()
