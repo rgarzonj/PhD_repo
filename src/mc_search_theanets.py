@@ -12,7 +12,7 @@ from util import loadContents
 #from joblib import Parallel, delayed
 
 MAX_GAME_STEPS = 4000
-MAX_SIM_STEPS = 4000
+MAX_SIM_STEPS = 12000
 NUM_ROLLOUTS = 20
 EPSILON = 0.1
 MAX_EPISODES = 5
@@ -66,7 +66,7 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
         currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
         observedUtility += reward
         if (done):
-            print 'Simulation %d reached terminal state after %d steps !!!!!!!!!!!!' %(u,nSimulation)
+            print 'Simulation %d reached terminal state after %d steps !!!!!!!!!!!!' %(nSimulation,u)
             break
     # Return action and observed utility
     
