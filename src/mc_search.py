@@ -8,9 +8,9 @@ from QValueFunction import QValueFunction
 from skdata.tests.test_caltech import counts_101
 from joblib import Parallel, delayed
 
-MAX_GAME_STEPS = 400
-MAX_SIM_STEPS = 8000
-NUM_ROLLOUTS = 20
+MAX_GAME_STEPS = 8000
+MAX_SIM_STEPS = 4000
+NUM_ROLLOUTS = 100
 EPSILON = 0.1
 LEARNING_RATE = 0.05
 
@@ -23,9 +23,14 @@ P_MIN = -1.2;
 P_MAX = 0.5;
 V_MIN = -0.07;
 V_MAX = 0.07;
+P_DIF = P_MAX - P_MIN
+V_DIF = V_MAX-V_MIN
+print V_DIF
+print P_DIF
 
 #Simulate the game starting from 'start_state'    
-def SimulateGame(env,start_state,qFunction):
+
+def SimulateGame(env,start_state,qFunction,nSimulation):
     #print 'Starting simulation'
     #print start_state
     #def SimulateGame(start_state):
@@ -33,9 +38,8 @@ def SimulateGame(env,start_state,qFunction):
 #    qFunction.getWeights()
     observedUtility = 0
     currentState = start_state
-    currentState = [(currentState[0]-P_MIN)/(P_MAX-P_MIN),(currentState[1]-V_MIN)/(V_MAX-V_MIN)]
+    currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
     possibleActions = [0,1,2]
-  
     for u in range(MAX_SIM_STEPS):
         if (util.flipCoin(EPSILON)):
             #print 'Choosing random action'
@@ -53,7 +57,7 @@ def SimulateGame(env,start_state,qFunction):
 #        env.render()
 #        time.sleep(0.01)
         currentState, reward, done, info = env.step(nextAction)
-        currentState = [(currentState[0]-P_MIN)/(P_MAX-P_MIN),(currentState[1]-V_MIN)/(V_MAX-V_MIN)]
+        currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
         observedUtility += reward
         if (done):
             print 'Simulation reached terminal state !!!!!!!!!!!!'
@@ -63,10 +67,11 @@ def SimulateGame(env,start_state,qFunction):
     for a in possibleActions:
         qValue = qFunction.computeQFunction (a,start_state)
         qValues.append(qValue)
-    bestAction = possibleActions[qValues.index(max(qValues))]    
-    #Update parameters w of Q(s,a)
-    qFunction.updateWeights(max(qValues), observedUtility, bestAction, start_state, LEARNING_RATE)
     m = max(qValues)
+    bestAction = possibleActions[qValues.index(m)]
+    #Update parameters w of Q(s,a)
+    qFunction.updateWeights(m, observedUtility, bestAction, start_state, LEARNING_RATE)
+
     print 'Simulation returning %d with action-value %f' %(bestAction , m)
     return bestAction, m
 
@@ -84,17 +89,20 @@ def PlayGame():
         for i in range(NUM_ROLLOUTS):
             frozenEnv = copy.copy(envir)
             print 'Starting simulation %d' %i
-            a_i,r_i = SimulateGame(frozenEnv,nextState,qFunction)
+            a_i,r_i = SimulateGame(frozenEnv,nextState,qFunction,i)
             #print a_i
             #print r_i
-            rewards[a_i] += r_i
-            counting[a_i] = counting[a_i]+1
-            #print rewards
-            #print counting        
+            # This is an improvement: computing only the average rewards during the latest
+            # rollouts when the weights of the Q function have already converged
+            if (i>(NUM_ROLLOUTS*4/5)):
+                rewards[a_i] += r_i
+                counting[a_i] = counting[a_i]+1
+                #print rewards
+                #print counting        
         #For every action    
         #Compute average observed utility for each action            
         avg_rewards = rewards/counting
-        #print avg_rewards
+        print avg_rewards
         #Execute selected action in game       
 #        selectedAction = avg_rewards.index(max(avg_rewards))
         avg_rewards[np.isnan(avg_rewards)] = 0       
@@ -104,7 +112,7 @@ def PlayGame():
         nextState,reward,done,info = envir.step(selectedAction)
         totalReward+=reward
         if (done):
-            print 'Game reached terminal state in %d with reward' %t %totalReward
+            print 'Game reached terminal state in %d steps with reward %f' %(t,totalReward)
             break
     print 'Game reached maximum number of steps %f' %totalReward
     #envir.close()

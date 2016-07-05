@@ -3,6 +3,12 @@
 Basic MonteCarlo search algorithms as described in page 673  
 http://www.jair.org/papers/paper3484.html
 
+### Requirements
+git clone https://github.com/openai/gym
+cd gym
+pip install -e . # minimal install
+
+
 ### Basic MC search, linear f. approximation
 QValueFunction uses linear approximation of the Q function 
 applied to Mountain Car problem  

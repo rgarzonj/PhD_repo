@@ -19,10 +19,13 @@ P_MIN = -1.2;
 P_MAX = 0.5;
 V_MIN = -0.07;
 V_MAX = 0.07;
+P_DIF = P_MAX - P_MIN
+V_DIF = V_MAX-V_MIN
+
 t = 0
 
 #Simulate the game starting from 'start_state'    
-def SimulateGame(env,start_state,qNetwork):
+def SimulateGame(env,start_state,qNetwork,nSimulation):
     #print 'Starting simulation'
     #print start_state
     #def SimulateGame(start_state):
@@ -31,7 +34,7 @@ def SimulateGame(env,start_state,qNetwork):
     global t
     observedUtility = 0
     currentState = start_state
-    currentState = [(currentState[0]-P_MIN)/(P_MAX-P_MIN),(currentState[1]-V_MIN)/(V_MAX-V_MIN)]
+    currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
     possibleActions = [0,1,2]
   
     for u in range(MAX_SIM_STEPS):
@@ -48,6 +51,8 @@ def SimulateGame(env,start_state,qNetwork):
                 qValue = qNetwork.computeQFunction (a,currentState)
                 qValues.append(qValue)
             #print qValues
+            # The following lines would configure that if all qValues have the same value, we
+            # do not apply acceleration to the Mountain Car
             #if (qValues[0] == qValues[1] and qValues[1]==qValues[2]):
             #    nextAction = 1
             #else:
@@ -57,10 +62,10 @@ def SimulateGame(env,start_state,qNetwork):
         #env.render()
 #        time.sleep(0.01)
         currentState, reward, done, info = env.step(nextAction)
-        currentState = [(currentState[0]-P_MIN)/(P_MAX-P_MIN),(currentState[1]-V_MIN)/(V_MAX-V_MIN)]
+        currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
         observedUtility += reward
         if (done):
-            print 'Simulation reached terminal state after %d steps !!!!!!!!!!!!' %u
+            print 'Simulation %d reached terminal state after %d steps !!!!!!!!!!!!' %(u,nSimulation)
             break
     # Return action and observed utility
     
@@ -68,14 +73,15 @@ def SimulateGame(env,start_state,qNetwork):
     for a in possibleActions:
         qValue = qNetwork.computeQFunction (a,start_state)
         qValues.append(qValue)
-    bestAction = possibleActions[qValues.index(max(qValues))]    
+    m = max(qValues)
+    bestAction = possibleActions[qValues.index(m)]    
     #Update parameters w of Q(s,a)
     #qNetwork.resetTrainSet()
     qNetwork.collectSample(observedUtility, bestAction, start_state)
     qNetwork.trainNetwork()
 #    qNetwork.trainNetwork()
-    m = max(qValues)
-    #print 'Simulation returning %d with action-value %f' %(bestAction , m)
+
+    print 'Simulation %d returning %d with action-value %f' %(nSimulation,bestAction , m)
     return bestAction, m
 
 def PlayGame():
@@ -93,8 +99,8 @@ def PlayGame():
 #        qNetwork = QValueNetwork(envir.action_space.n,nextState.shape[0])
         for i in range(NUM_ROLLOUTS):
             frozenEnv = copy.copy(envir)
-            print 'Starting simulation %d' %i
-            a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork)
+            #print 'Starting simulation %d' %i
+            a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork,i)
             #print a_i
             #print r_i
             rewards[a_i] += r_i
@@ -117,7 +123,7 @@ def PlayGame():
         #qNetwork.resetNetwork()
         totalReward+=reward
         if (done):
-            print 'Game reached terminal state in %d with reward' %t %totalReward
+            print 'Game reached terminal state in %d with reward %f' %(t,totalReward)
             break
     print 'Game reached maximum number of steps %f' %totalReward
     envir.close()

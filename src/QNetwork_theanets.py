@@ -11,7 +11,7 @@ class QValueNetwork:
     V_MIN = -0.07;
     V_MAX = 0.07;
     INPUT_LAYER_SIZE = 5
-    N_HIDDEN_1 = 10
+    N_HIDDEN_1 = 5
     N_HIDDEN_2 = 5
     
     def __init__(self,num_actions,dim_states):
