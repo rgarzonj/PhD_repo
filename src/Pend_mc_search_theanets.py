@@ -110,9 +110,9 @@ def PlayGame():
         # Initialize QValueNetwork
         qNetwork = QValueNetwork(1,nextState.shape[0])
         #Save the environment as we will need to run rollouts from the current step
-        envir.render(close=True)
+        #envir.render(close=True)
         saveContents(envir,'frozenEnvironment.pckl')
-        envir.render()
+        #envir.render()
         for i in range(NUM_ROLLOUTS):
             #frozenEnv = copy.copy(envir)
             frozenEnv = loadContents('frozenEnvironment.pckl')
