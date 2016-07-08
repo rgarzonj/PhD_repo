@@ -13,9 +13,9 @@ from util import loadContents
 
 MAX_GAME_STEPS = 200
 MAX_SIM_STEPS = 200
-NUM_ROLLOUTS = 5
-EPSILON = 0.1
-MAX_EPISODES = 10
+NUM_ROLLOUTS = 4
+EPSILON = 0.2
+MAX_EPISODES = 100
 
 
 P_MIN = -1.2;
@@ -27,7 +27,7 @@ V_DIF = V_MAX-V_MIN
 
 t = 0
 
-possibleActions = np.arange(-2,2,0.5)
+possibleActions = np.arange(-2,2,0.2)
 
 #Simulate the game starting from 'start_state'    
 def SimulateGame(env,start_state,qNetwork,nSimulation):
@@ -83,7 +83,8 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
     qNetwork.resetTrainSet()
     qNetwork.collectSample(observedUtility, possibleActions[bestActionIndex], start_state)
     qNetwork.trainNetwork()
-    #print 'Simulation %d returning %d with action-value %f' %(nSimulation,possibleActions[bestActionIndex] , m)
+    print 'Simulation %d returning %f with action-value %f' %(nSimulation,possibleActions[bestActionIndex] , m)
+    #env.render(close=True)
     #env.close()
     return bestActionIndex, m
 
@@ -103,7 +104,9 @@ def PlayGame():
         # Initialize QValueNetwork
         qNetwork = QValueNetwork(1,nextState.shape[0])
         #Save the environment as we will need to run rollouts from the current step
+        #envir.render(close=True)
         saveContents(envir,'frozenEnvironment.pckl')
+        #envir.render()
         for i in range(NUM_ROLLOUTS):
             #frozenEnv = copy.copy(envir)
             frozenEnv = loadContents('frozenEnvironment.pckl')
@@ -111,8 +114,10 @@ def PlayGame():
             a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork,i)
             #print a_i
             #print r_i
-            rewards[a_i] += r_i
-            counting[a_i] = counting[a_i]+1
+            # We will not compute the initial reward as Q value was not accurate
+            if (i!=0):
+                rewards[a_i] += r_i
+                counting[a_i] = counting[a_i]+1
             #print rewards
             #print counting
         #For every action    
@@ -129,6 +134,7 @@ def PlayGame():
         #envir.render()
         #time.sleep(0.5)
         nextState,reward,done,info = envir.step(np.array([selectedAction]))
+        
         #print 'Current situation of the game is'
         #print nextState
         qNetwork.resetNetwork()
