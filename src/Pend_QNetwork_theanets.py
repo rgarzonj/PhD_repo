@@ -27,12 +27,12 @@ class QValueNetwork:
         self.net = theanets.Regressor(layers=[self.INPUT_LAYER_SIZE,self.N_HIDDEN_1,1])
         
     def trainNetwork(self):
-#        print 'Training network with the following train set'
+        #print 'Training network with the following train set'
         trainData = self.trainSet.drop('Q',axis=1)
         labels = self.trainSet['Q'].values.astype('float64')
         train = trainData.values,labels[:, None]
         self.net.train(train, verbose='True',learning_rate=0.05)
-#        print self.trainSet
+        #print self.trainSet
         #print 'Reset trainset'
         #self.trainSet = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2','Q'])       
         #print self.trainSet

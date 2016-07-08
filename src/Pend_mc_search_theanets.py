@@ -12,10 +12,10 @@ from util import loadContents
 #from joblib import Parallel, delayed
 
 MAX_GAME_STEPS = 200
-MAX_SIM_STEPS = 200
-NUM_ROLLOUTS = 4
-EPSILON = 0.2
-MAX_EPISODES = 100
+MAX_SIM_STEPS = 150
+NUM_ROLLOUTS = 80
+EPSILON = 0.5
+MAX_EPISODES = 5
 
 
 P_MIN = -1.2;
@@ -27,7 +27,8 @@ V_DIF = V_MAX-V_MIN
 
 t = 0
 
-possibleActions = np.arange(-2,2,0.2)
+possibleActions = np.linspace(-2,2,10)
+indexs = np.arange(0,len(possibleActions),1)
 
 #Simulate the game starting from 'start_state'    
 def SimulateGame(env,start_state,qNetwork,nSimulation):
@@ -40,7 +41,8 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
     observedUtility = 0
     currentState = start_state
     for u in range(MAX_SIM_STEPS):
-        if (util.flipCoin(EPSILON)):
+        if (1==2):
+        #if (util.flipCoin(EPSILON)):
             #print 'Choosing random action'
             nextAction = random.choice(possibleActions)
         else:
@@ -78,14 +80,18 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
     m = max(qValues)
     # We change this line to return the index of the action instead of the action itself
     #bestAction = possibleActions[qValues.index(m)]    
-    bestActionIndex = qValues.index(m)
+    if (util.flipCoin(EPSILON)):
+        bestActionIndex = random.choice(indexs)
+        m = qValues[bestActionIndex]
+    else:
+        bestActionIndex = qValues.index(m)
     #Update parameters w of Q(s,a)
-    qNetwork.resetTrainSet()
+    #qNetwork.resetTrainSet()
     qNetwork.collectSample(observedUtility, possibleActions[bestActionIndex], start_state)
     qNetwork.trainNetwork()
     print 'Simulation %d returning %f with action-value %f' %(nSimulation,possibleActions[bestActionIndex] , m)
     #env.render(close=True)
-    #env.close()
+    env.close()
     return bestActionIndex, m
 
 def PlayGame():
@@ -104,9 +110,9 @@ def PlayGame():
         # Initialize QValueNetwork
         qNetwork = QValueNetwork(1,nextState.shape[0])
         #Save the environment as we will need to run rollouts from the current step
-        #envir.render(close=True)
+        envir.render(close=True)
         saveContents(envir,'frozenEnvironment.pckl')
-        #envir.render()
+        envir.render()
         for i in range(NUM_ROLLOUTS):
             #frozenEnv = copy.copy(envir)
             frozenEnv = loadContents('frozenEnvironment.pckl')
@@ -123,9 +129,9 @@ def PlayGame():
         #For every action    
         #Compute average observed utility for each action            
         avg_rewards = rewards/counting
-        #print avg_rewards        
+        print avg_rewards        
         #Just in case some action was never chosen would give nan
-        avg_rewards[np.isnan(avg_rewards)] = 0       
+        avg_rewards[np.isnan(avg_rewards)] = -10000       
         #Execute selected action in game       
         selectedActionIndex = avg_rewards.argmax() 
         selectedAction = possibleActions[selectedActionIndex]        
@@ -143,7 +149,7 @@ def PlayGame():
         #if ((1-nextState[0] <0.001) and (nextState[1]-1<0.001)):
         #    print 'Game reached terminal state in %d with reward %f' %(t,totalReward)
         #    break
-    print 'Game reached maximum number of steps %f' %totalReward
+    print 'Game reached maximum number of steps; totalReward is %f' %totalReward
     envir.close()
     return (totalReward)
 ### END OF SCRIPT
