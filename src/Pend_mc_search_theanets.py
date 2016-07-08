@@ -12,8 +12,8 @@ from util import loadContents
 #from joblib import Parallel, delayed
 
 MAX_GAME_STEPS = 200
-MAX_SIM_STEPS = 150
-NUM_ROLLOUTS = 80
+MAX_SIM_STEPS = 10
+NUM_ROLLOUTS = 5
 EPSILON = 0.5
 MAX_EPISODES = 5
 
@@ -27,7 +27,7 @@ V_DIF = V_MAX-V_MIN
 
 t = 0
 
-possibleActions = np.linspace(-2,2,10)
+possibleActions = np.linspace(-2,2,4)
 indexs = np.arange(0,len(possibleActions),1)
 
 #Simulate the game starting from 'start_state'    
@@ -110,9 +110,9 @@ def PlayGame():
         # Initialize QValueNetwork
         qNetwork = QValueNetwork(1,nextState.shape[0])
         #Save the environment as we will need to run rollouts from the current step
-        #envir.render(close=True)
+        envir.render(close=True)
         saveContents(envir,'frozenEnvironment.pckl')
-        #envir.render()
+        envir.render()
         for i in range(NUM_ROLLOUTS):
             #frozenEnv = copy.copy(envir)
             frozenEnv = loadContents('frozenEnvironment.pckl')
