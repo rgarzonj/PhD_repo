@@ -9,21 +9,21 @@ cd gym
 pip install -e . # minimal install  
 
 
-### Basic MC search, linear f. approximation
+### Basic MC search, linear f. approximation (MountainCar)
 QValueFunction uses linear approximation of the Q function 
 applied to Mountain Car problem  
 - mc_search.py (please run this file)
 - QValueFunction.py
 - util.py
 
-### Basic MC search, theanets NN as Q function approximation
+### Basic MC search, theanets NN as Q f. approximation (MountainCar)
 QValueFunction uses Theanets Regressor as function approximator
 applied to Mountain Car problem  
 - mc_search_theanets.py (please run this file)
 - QNetwork_theanets.py
 - util.py
 
-### Basic MC search, theanets NN as Q function approximation
+### Basic MC search, theanets NN as Q f. approximation (Pendulum)
 QValueFunction uses Theanets Regressor as function approximator
 applied to Pendulum problem  
 - Pend_mc_search_theanets.py (please run this file)
