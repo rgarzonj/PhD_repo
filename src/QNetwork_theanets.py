@@ -23,7 +23,7 @@ class QValueNetwork:
         #self.weights = 1000*np.random.randn(dim_states+num_actions)
         self.weights = np.random.randn(dim_states+ dim_states + dim_states + num_actions)
         self.trainSet = pd.DataFrame(columns=['Pos','Vel','Action','Q'])
-        self.net = theanets.Regressor(layers=[self.INPUT_LAYER_SIZE,self.N_HIDDEN_1,1])
+        self.net = theanets.Regressor(layers=[self.INPUT_LAYER_SIZE,self.N_HIDDEN_1,self.N_HIDDEN_2,1])
         
     def trainNetwork(self):
         print 'Training network with the following train set'
