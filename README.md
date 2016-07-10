@@ -22,3 +22,10 @@ applied to Mountain Car problem
 - mc_search_theanets.py (please run this file)
 - QNetwork_theanets.py
 - util.py
+
+### Basic MC search, theanets NN as Q function approximation
+QValueFunction uses Theanets Regressor as function approximator
+applied to Pendulum problem  
+- Pend_mc_search_theanets.py (please run this file)
+- Pend_QNetwork_theanets.py
+- util.py
