@@ -23,9 +23,13 @@ applied to Mountain Car problem
 - QNetwork_theanets.py
 - util.py
 
+### Baseline (Pendulum)  
+Reference benchmark using random choice on every step.
+
 ### Basic MC search, theanets NN as Q f. approximation (Pendulum)
 QValueFunction uses Theanets Regressor as function approximator
 applied to Pendulum problem  
 - Pend_mc_search_theanets.py (please run this file)
 - Pend_QNetwork_theanets.py
 - util.py
+
