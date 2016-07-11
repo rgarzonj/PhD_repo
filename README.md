@@ -25,6 +25,7 @@ applied to Mountain Car problem
 
 ### Baseline (Pendulum)  
 Reference benchmark using random choice on every step.
+- Pendulum_baseline.py (please run this file)
 
 ### Basic MC search, theanets NN as Q f. approximation (Pendulum)
 QValueFunction uses Theanets Regressor as function approximator
