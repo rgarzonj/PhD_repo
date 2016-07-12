@@ -12,9 +12,9 @@ from util import loadContents
 #from joblib import Parallel, delayed
 
 MAX_GAME_STEPS = 200
-MAX_SIM_STEPS = 8000
-NUM_ROLLOUTS = 8
-EPSILON = 0.1
+MAX_SIM_STEPS = 20
+NUM_ROLLOUTS = 6
+EPSILON = 0.2
 MAX_EPISODES = 5
 
 
@@ -28,7 +28,7 @@ V_DIF = V_MAX-V_MIN
 t = 0
 
 #Simulate the game starting from 'start_state'    
-def SimulateGame(env,start_state,qNetwork,nSimulation):
+def SimulateGame(env,start_state,qNetwork,nSimulation,eps):
     #print 'Starting simulation'
     #print start_state
     #def SimulateGame(start_state):
@@ -39,12 +39,11 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
     currentState = start_state
     currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
     possibleActions = [0,1,2]
-  
     for u in range(MAX_SIM_STEPS):
         #if (1==2):
-        if (util.flipCoin(EPSILON)):
+        if (util.flipCoin(eps)):
             #print 'Choosing random action'
-            nextAction = random.choice(possibleActions)
+            nextActionIndex = random.choice(possibleActions)
         else:
             #print 'Choosing best action value action'
             qValues = []
@@ -54,41 +53,33 @@ def SimulateGame(env,start_state,qNetwork,nSimulation):
                 qValues.append(qValue)
             #print qValues
             # The following lines would configure that if all qValues have the same value, we
-            # do not take accelerate
+            # do not take acceleration
             #if (qValues[0] == qValues[1] and qValues[1]==qValues[2]):
-            #    nextAction = 1
+            #    nextActionIndex = 1
             #else:
-            nextAction = possibleActions[qValues.index(max(qValues))]
+            nextActionIndex = possibleActions[qValues.index(max(qValues))]
         #Execute nextAction
         #print 'Simulation executing action %d' %nextAction
         #Commenting the following line to save computing time
         #env.render()
-        currentState, reward, done, info = env.step(nextAction)
+        if u == 0:
+            a_t = nextActionIndex
+        currentState, reward, done, info = env.step(possibleActions[nextActionIndex])
         currentState = [(currentState[0]-P_MIN)/(P_DIF),(currentState[1]-V_MIN)/(V_DIF)]
         observedUtility += reward
         if (done):
             print 'Simulation %d reached terminal state after %d steps !!!!!!!!!!!!' %(nSimulation,u)
             break
-    # Return action and observed utility
-    
-    qValues = []
-    for a in possibleActions:
-        qValue = qNetwork.computeQFunction (a,start_state)
-        qValues.append(qValue)
-    m = max(qValues)
-    if (util.flipCoin(5*EPSILON)):
-        bestActionIndex = random.choice(possibleActions)
-        m = qValues[bestActionIndex]    
-    else:
-        bestActionIndex = qValues.index(m)
-    bestAction = possibleActions[bestActionIndex]   
+
+
     #Update parameters w of Q(s,a)
-    qNetwork.resetTrainSet()
-    qNetwork.collectSample(observedUtility, bestAction, start_state)
+    #qNetwork.resetTrainSet()
+    qNetwork.collectSample(observedUtility, a_t, start_state)
     qNetwork.trainNetwork()
-    print 'Simulation %d returning %d with action-value %f' %(nSimulation,bestAction , m)
+    print 'Simulation %d returning %d with action-value %f' %(nSimulation,a_t , observedUtility)
     #env.render(close=True)
-    return bestAction, m
+    # Return action and observed utility
+    return a_t, observedUtility
 
 def PlayGame():
     global t
@@ -97,22 +88,24 @@ def PlayGame():
     nextState = envir.reset()
     totalReward = 0
     #for t = 1 . . . T do
-    qNetwork = QValueNetwork(envir.action_space.n,nextState.shape[0])
+    #qNetwork = QValueNetwork(envir.action_space.n,nextState.shape[0])
     for t in range(MAX_GAME_STEPS):
         rewards = np.zeros(envir.action_space.n)
         counting = np.zeros(envir.action_space.n)
         #Run N simulated games for i = 1 . . . N do    
         # Initialize QValueNetwork
-        #qNetwork = QValueNetwork(envir.action_space.n,nextState.shape[0])
+        qNetwork = QValueNetwork(envir.action_space.n,nextState.shape[0])
         #Save the environment as we will need to run rollouts from the current step
         #envir.render(close=True)
         saveContents(envir,'frozenEnvironment.pckl')
         #envir.render()
+        eps = EPSILON
         for i in range(NUM_ROLLOUTS):
+            eps = eps*0.999
             #frozenEnv = copy.copy(envir)
             frozenEnv = loadContents('frozenEnvironment.pckl')
             #print 'Starting simulation %d' %i
-            a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork,i)
+            a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork,i,eps)
             #print a_i
             #print r_i
             # We will not consider the initial reward as Q value was not accurate
@@ -153,12 +146,6 @@ for episode in range (MAX_EPISODES):
 avg_rew = all_rewards/float(MAX_EPISODES)
 print 'Average reward is %f ' %avg_rew
     
-#envir = gym.make('MountainCar-v0')
-#initialState = envir.reset()
-#action,reward = SimulateGame(envir,initialState)
-#print action
-#print reward
-
 
 
             
