@@ -1,4 +1,4 @@
-You can find the following job in the file /sge-root/examples/jobs/simple.sh.
+# You can find the following job in the file /sge-root/examples/jobs/simple.sh.
 #!/bin/sh
 #
 #
