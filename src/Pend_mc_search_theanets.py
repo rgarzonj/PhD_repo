@@ -13,7 +13,7 @@ from util import loadContents
 
 MAX_GAME_STEPS = 200
 MAX_SIM_STEPS = 20
-NUM_ROLLOUTS = 20
+NUM_ROLLOUTS = 40
 EPSILON = 0.1
 MAX_EPISODES = 20
 
