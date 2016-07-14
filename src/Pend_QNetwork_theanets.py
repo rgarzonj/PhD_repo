@@ -31,8 +31,10 @@ class QValueNetwork:
         trainData = self.trainSet.drop('Q',axis=1)
         labels = self.trainSet['Q'].values.astype('float64')
         train = trainData.values,labels[:, None]
+#        print self.trainSet
+#        print trainData
+#        print labels[:,None]
         self.net.train(train, verbose='True',learning_rate=0.05)
-        #print self.trainSet
         #print 'Reset trainset'
         #self.trainSet = pd.DataFrame(columns=['Pos','Vel','A0','A1','A2','Q'])       
         #print self.trainSet

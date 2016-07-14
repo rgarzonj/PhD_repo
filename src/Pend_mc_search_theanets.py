@@ -13,9 +13,9 @@ from util import loadContents
 
 MAX_GAME_STEPS = 200
 MAX_SIM_STEPS = 20
-NUM_ROLLOUTS = 15
+NUM_ROLLOUTS = 20
 EPSILON = 0.1
-MAX_EPISODES = 5
+MAX_EPISODES = 20
 
 
 P_MIN = -1.2;
@@ -27,7 +27,7 @@ V_DIF = V_MAX-V_MIN
 
 t = 0
 
-possibleActions = np.linspace(-2,2,3)
+possibleActions = np.linspace(-2,2,5)
 indexs = np.arange(0,len(possibleActions),1)
 
 #Simulate the game starting from 'start_state'    
@@ -61,15 +61,18 @@ def SimulateGame(env,start_state,qNetwork,nSimulation,eps):
         #Execute nextAction
         #print 'Simulation executing action %f' %nextAction
         #Commenting the following line to save computing time
+        #env.render()
         currentState, reward, done, info = env.step(np.array([possibleActions[nextActionIndex]]))
         observedUtility += reward
+        #print currentState
+        #time.sleep(0.5)
     #Update parameters w of Q(s,a)
     #qNetwork.resetTrainSet()
     qNetwork.collectSample(observedUtility, possibleActions[a_t], start_state)
     qNetwork.trainNetwork()
     print 'Simulation %d returning %f with action-value %f' %(nSimulation,possibleActions[a_t] , observedUtility)
     #env.render(close=True)
-    env.close()
+    #env.close()
     # Return action and observed utility
     return a_t, observedUtility
 
@@ -100,8 +103,6 @@ def PlayGame():
             a_i,r_i = SimulateGame(frozenEnv,nextState,qNetwork,i,eps)
             #print a_i
             #print r_i
-            # Uncommenting this line will not compute the initial reward as Q value was not accurate
-            #if (i!=0):
             rewards[a_i] += r_i
             counting[a_i] = counting[a_i]+1
             #print rewards

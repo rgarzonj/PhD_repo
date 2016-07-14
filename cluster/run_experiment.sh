@@ -10,12 +10,6 @@
 #$ -o output.txt
 #$ -e error.txt
 #$ -M rgarzonj@cs.upc.edu
-#$ -q short
+#$ -q gpu
 #
-# print date and time
-date
-# Sleep for 20 seconds
-sleep 20
-# print date and time again
-date
-
+python ../Pend_mc_search_theanets.py
