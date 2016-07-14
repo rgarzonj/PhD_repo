@@ -10,7 +10,7 @@ You can find the following job in the file /sge-root/examples/jobs/simple.sh.
 #$ -o output.txt
 #$ -e error.txt
 #$ -M rgarzonj@cs.upc.edu
-#$ -q test
+#$ -q short
 #
 # print date and time
 date
