@@ -12,4 +12,4 @@
 #$ -M rgarzonj@cs.upc.edu
 #$ -q gpu
 #
-python ../Pend_mc_search_theanets.py
+python theano_basic_gpu_test.py
