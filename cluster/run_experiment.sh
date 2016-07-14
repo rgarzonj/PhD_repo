@@ -12,4 +12,5 @@
 #$ -M rgarzonj@cs.upc.edu
 #$ -q gpu
 #
-THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python ./theano_basic_gpu_test.py
+#THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python ./theano_basic_gpu_test.py
+THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python /home/usuaris/rgarzonj/github/PhD_repo/cluster/theano_basic_gpu_test.py
