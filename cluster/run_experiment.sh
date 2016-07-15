@@ -16,4 +16,4 @@ PATH=$PATH:/usr/local/cuda/bin
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda:/usr/local/cuda/lib64
 #THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python ./theano_basic_gpu_test.py
 #THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python /home/usuaris/rgarzonj/github/PhD_repo/cluster/theano_basic_gpu_test.py
-THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python /home/usuaris/rgarzonj/github/PhD_repo/src/Pend_mc_search_theanets.py
+THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float64 python /home/usuaris/rgarzonj/github/PhD_repo/src/Pend_mc_search_theanets.py
