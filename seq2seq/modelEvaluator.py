@@ -43,8 +43,8 @@ class modelEvaluator:
             next_action = [random.randint(0,numBlocks),random.randint(0,numBlocks)]
             while (done == False):
                 obs, reward, done, empty = env.step (next_action)
-                print ('Next action ' + str(next_action))
-                print ('Obs ' + str(obs))
+                #print ('Next action ' + str(next_action))
+                #print ('Obs ' + str(obs))
                 next_action = self.agent.sampleAction(obs)
                 #env.render()
                 steps +=1    

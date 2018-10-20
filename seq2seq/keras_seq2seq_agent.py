@@ -228,9 +228,9 @@ class BasicSeq2SeqAgent:
         ret = []
         #TODO This implies a the limitation to 10 blocks because every char encodes the oneblock
         for char in decoded_sentence:            
-            print ('START')
-            print (char)
-            print ('END')
+            #print ('START')
+            #print (char)
+            #print ('END')
             if (char.isdigit()):
                 ret.append(int(char))
             else:
