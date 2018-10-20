@@ -153,20 +153,20 @@ decoder_outputs = decoder_dense(decoder_outputs)
 model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
 # Run training
-#model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-#model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-#          batch_size=batch_size,
-#          epochs=epochs,
-#          validation_split=0.2)
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
+          batch_size=batch_size,
+          epochs=epochs,
+          validation_split=0.2)
 
 
 # Save model
-#model.save('s2s.h5')
-from keras.models import load_model
-
-model = load_model('s2s.h5')
+model.save('s2s.h5')
+#print (model.summary())
+#from keras.models import load_model
 
 #model = load_model('s2s.h5')
+
 # Next: inference mode (sampling).
 # Here's the drill:
 # 1) encode input and retrieve initial decoder state
@@ -196,7 +196,9 @@ reverse_input_char_index = dict(
 reverse_target_char_index = dict(
     (i, char) for char, i in target_token_index.items())
 
-
+#model.save('s2s.h5')
+from keras.models import load_model
+model = load_model('s2s.h5')
 def decode_sequence(input_seq):
     # Encode the input as state vectors.
     states_value = encoder_model.predict(input_seq)
@@ -239,8 +241,10 @@ for seq_index in range(100):
     # Take one sequence (part of the training set)
     # for trying out decoding.
     input_seq = encoder_input_data[seq_index: seq_index + 1]
-    print (input_seq)
+    #print (input_seq)
     decoded_sentence = decode_sequence(input_seq)
     print('-')
     print('Input sentence:', input_texts[seq_index])
     print('Decoded sentence:', decoded_sentence)
+    
+#print (model.summary())

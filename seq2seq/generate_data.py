@@ -174,7 +174,7 @@ if __name__ == '__main__':
     bwopt_path = '/Users/rgarzon/Documents/Projects/Ruben/phD/Repository/LSTMs/Blocksworld/BWOPT/optimal/bwopt'    
     numBlocks = 5
     bwgenerator = BW_data_generator(bwstates_path,bwopt_path,numBlocks)
-    numSequences = 10000
+    numSequences = 20000
     bwgenerator.generateInputAndOutputs(numSequences)
     bwgenerator.generateVocabulary()
     
