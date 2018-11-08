@@ -48,9 +48,13 @@ import numpy as np
 
 import keras.backend as K
 
+K.set_session
+
 from keras.layers.core import Reshape
 from keras.layers import TimeDistributed,Activation,dot,concatenate
 from keras.activations import tanh,softmax
+
+import tensorflow as tf
 
 batch_size = 64  # Batch size for training.
 epochs = 20  # Number of epochs to train for.
@@ -138,6 +142,8 @@ for i, (input_text, target_text) in enumerate(zip(input_texts, target_texts)):
 
 # Define an input sequence and process it.
 encoder_inputs = Input(shape=(max_encoder_seq_length, num_encoder_tokens))
+print ('encoder_inputs')
+print (encoder_inputs)
 encoder = LSTM(latent_dim, return_state=True,return_sequences=True,unroll=True)
 encoder_outputs, state_h, state_c = encoder(encoder_inputs)
 print (encoder_outputs)
@@ -151,7 +157,7 @@ decoder_inputs = Input(shape=(max_decoder_seq_length, num_decoder_tokens))
 # We set up our decoder to return full output sequences,
 # and to return internal states as well. We don't use the
 # return states in the training model, but we will use them in inference.
-decoder_lstm = LSTM(latent_dim, return_state=True)
+decoder_lstm = LSTM(latent_dim, return_state=True, return_sequences =True)
 decoder_outputs, decoder_hidden, _ = decoder_lstm(decoder_inputs,
                                      initial_state=encoder_states)
 
@@ -177,7 +183,7 @@ print ("en_seq")
 print (en_seq)
 
 #dec_seq = Reshape((-1,1,latent_dim))(decoder_hidden)
-dec_seq = K.repeat(decoder_outputs, max_encoder_seq_length)
+dec_seq = K.repeat(decoder_hidden, max_encoder_seq_length)
 #dec_seq = Reshape((-1,1,latent_dim))(dec_seq) 
 #dec_seq = K.squeeze(dec_seq,0)
 print ("dec_seq")
@@ -194,27 +200,45 @@ print ('blendW2')
 print (blendW2)
 
 blend3 = tanh(blendW1+blendW2)
-blend3 = K.squeeze(blend3,0)
 print ("blend3")
 print (blend3)
-U = vt*blend3
+#blend3 = K.squeeze(blend3,0)
+#print ("blend3 squeezed")
+#print (blend3)
+U = dot([blend3,vt],(0,1))
 print ('U')
 print (U)
-#U = K.squeeze(U, 0)
-#print ('U squeezed')
-#print (U)
+U = K.squeeze(U, 0)
+print ('U squeezed')
+print (U)
 # make probability tensor
-pointer = softmax(U,1)
-print ("pointer")
-print (pointer)
 
-maxIndex = K.argmax(pointer,1)
-print ("maxIndex")
-print (maxIndex)
-outputs = encoder_inputs[:,]
+decoder_dense = Dense(num_encoder_tokens, activation='softmax')
+outputs = decoder_dense(U)
+
+print ('outputs')
+print (outputs)
+
+#outputs = K.slice(outputs,(0,0),(max_decoder_seq_length,num_encoder_tokens))(outputs)
+print ('outputs2')
+print (outputs)
+
+#pointer = softmax(U,1)
+#print ("pointer")
+#print (pointer)
+#
+#maxIndex = K.argmax(pointer,1)
+#print ("maxIndex")
+#print (maxIndex)
+#outputs = K.gather(encoder_inputs,maxIndex)
+#print ("outputs")
+#print (outputs)
+#outputs = Reshape((-1,outputs.shape[-1]))(outputs)
+#print ("outputs reshaped")
+#print (outputs)
 # Define the model that will turn
 # `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
-model = Model([encoder_inputs, decoder_inputs], outputs)
+model = Model([encoder_inputs, decoder_inputs], U)
 
 # Run training
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')

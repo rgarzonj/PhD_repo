@@ -13,6 +13,10 @@ from keras.models import load_model
 import os
 import random
 
+MAX_NUM_BLOCKS = 10
+#Consider the current and goal state (*2) and also the blank spaces between state representation (*2)
+MAX_INPUT_SEQ_LENGTH = 4*MAX_NUM_BLOCKS-1 #-1 because the last block do not have a blank space after it
+
 class BasicSeq2SeqAgent:
     '''Implements an agent with a seq2seq model trained on optimal plans
    '''
@@ -24,16 +28,18 @@ class BasicSeq2SeqAgent:
         """
         self.numBlocks = numBlocks
         batch_size = 64  # Batch size for training.
-        epochs = 20  # Number of epochs to train for.
+        epochs = 40  # Number of epochs to train for.
         latent_dim = 256  # Latent dimensionality of the encoding space.
-        num_samples = 20000  # Number of samples to train on.
+        num_samples = 10000  # Number of samples to train on.
         # Hack to support calling the file from the tests folder or the root folder
         if (os.path.isfile('input')):
             input_data_path = "input"
             target_data_path = "output"
+            vocab_data_path = "vocab"
         else:
             input_data_path = "../input"
             target_data_path = "../output"
+            vocab_data_path = "../vocab"
         # Vectorize the data.
         input_texts = []
         target_texts = []
@@ -63,7 +69,14 @@ class BasicSeq2SeqAgent:
             for char in target_text:
                 if char not in target_characters:
                     target_characters.add(char)
-     
+        with open(vocab_data_path,'r',encoding='utf-8') as f:
+            lines_in = f.read().split('\n')
+        for char in lines_in:
+            if (char not in input_characters):
+                input_characters.add(char)
+            if (char not in target_characters):
+                target_characters.add(char)
+                
         input_characters = sorted(list(input_characters))
         target_characters = sorted(list(target_characters))
         self.num_encoder_tokens = len(input_characters)
@@ -193,15 +206,54 @@ class BasicSeq2SeqAgent:
     
         return decoded_sentence
     
-    def sampleAction(self,input_seq):
+    def _padInputWithCharacter (self,inputSeq,padChar):
+        # Generate data method feeds an string as inputSeq
+        # OpenAI Gym feeds an array as inputSeq
+        # If we receive an array we move it to a string first
+        returnString = True
+        if (isinstance(inputSeq,np.ndarray)):
+            returnString = False
+            newSeq = str(inputSeq[0]) 
+            for item in inputSeq[1:]:
+                newSeq = newSeq + " " + str(item)
+            inputSeq = newSeq
+            #print (newSeq + 'EEEEE')
+            #InputSeq should be a string
+            #print (inputSeq)
+            #print (type(inputSeq))
+        ret = inputSeq
+        #TODO Support more than 10 blocks
+        if (len(inputSeq)<MAX_INPUT_SEQ_LENGTH):
+            numBlocks = int((1+len(inputSeq))/4)      
+            #We need to pad with unknowns
+            ret_current = inputSeq[0:numBlocks*2-1]
+            ret_goal = inputSeq[numBlocks*2:]
+            #Multiply by 2 because need to consider the blank spaces
+            for i in range(MAX_NUM_BLOCKS-numBlocks-1):
+                ret_current = ret_current + ' ' + padChar
+                ret_goal = ret_goal + ' ' + padChar
+            ret = ret_current + ' ' + padChar + ' ' + ret_goal + ' ' + padChar
+        #We must return a list of vocabulary items or a string
+        if returnString==True:
+            #When generating data
+            return ret
+        else:
+            #When infering
+            return ret.split(' ')
+    
+    
+    def sampleAction(self,input_seq):        
+        # Input seq is an int64 array when called from the openAI Gym
+
         #print ('Input sequence')
         #print (input_seq)
         #print (type(input_seq[0]))
+        #print (type(input_seq))
         # Although the agent is trained on optimal plans
         # we may reach the situation where the model do not emit a good action for the current state
         # and this could take the episode to never complete because the agent is always suggesting the same
         # incorrect action. We add an exploration factor to unlock this case
-        
+        input_seq = self._padInputWithCharacter(input_seq,'0')
         r = random.random()
         if (r<0.1):
             return([random.randint(0,self.numBlocks),random.randint(0,self.numBlocks)])
