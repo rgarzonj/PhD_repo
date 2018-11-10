@@ -24,6 +24,8 @@ class BW_data_generator:
         self.numBlocks = numBlocks
         self.inputs = []
         self.outputs = []
+        self.inputs_generalized = []
+        self.outputs_generalized = []
     
     def _generate_random_state (self):
         """ Generates valid initial state from the implementation of Slaney & Thiébaux"""        
@@ -102,7 +104,7 @@ class BW_data_generator:
             if (len(outputSequence) == 0):
                 outputSequence = oneItem              
             else:
-                outputSequence = outputSequence + " " + oneItem
+                outputSequence = outputSequence + " " + oneItem       
         self.inputs.append(inputSequence)
         self.outputs.append(outputSequence)
         return (inputSequence,outputSequence)
@@ -185,11 +187,89 @@ class BW_data_generator:
                     new_state[block_to_move-1] = destination
                     current_state_array = new_state
                 episodeCompleted=True
-                print ('******* Episode completed')
+                print ('******* Episode completed')       
         self._writeSequencesToFile()
         return inputs,outputs
 
-     
+    def _generalizeInputDataset(self,inputSequence,outputSequence):
+    #Given a sequence of steps generated with blocks 1 to 5 randomly
+    #replaces some of the blocks to be 6 to 9.
+    #This will allow us to train on 5 blocks and check generalization to 10 blocks
+    # Args:
+    #input, output: sequences of steps generated for 5 blocks.
+    # Returns:
+    #input, output: sequences of steps that include blocks number 6,7,8,9
+        outputSeqOutput = outputSequence
+        inputNumbers = inputSequence.split(' ')
+        inputNumbersCurrent = inputNumbers[0:MAX_NUM_BLOCKS]
+        inputNumbersGoal = inputNumbers[MAX_NUM_BLOCKS:]
+        inputNumbersCopy = inputNumbersCurrent.copy()      
+        for i,oneBlock in enumerate (inputNumbersCopy):
+        #With probability 0.5 replace the number by a number in the old range
+            if (oneBlock != '0' and random.random()>0.5):                    
+                print ("**************")
+                print ('oneBlock ',oneBlock,type(oneBlock))
+                newBlock = random.randint(self.numBlocks+1,MAX_NUM_BLOCKS)
+                while (newBlock in inputNumbersCurrent):
+                    newBlock = random.randint(self.numBlocks+1,MAX_NUM_BLOCKS)
+                print ('newBlock ',newBlock,type(newBlock))
+                save = inputNumbersCurrent[int(oneBlock)-1]
+                print ('save ',save,type(save))
+                saveNB = inputNumbersCurrent[newBlock-1]
+                print ('saveNB',saveNB,type(saveNB))
+                print ('i ',str(i),type(i))
+                print ('Replacing block %s by block %s',oneBlock,newBlock)                
+                inputNumbersCurrent[int(i)] = newBlock
+                inputNumbersCurrent[int(oneBlock)-1] = saveNB
+                inputNumbersCurrent[newBlock-1] = save    
+                if (oneBlock in outputSequence):
+                    outputSeqOutput.replace(oneBlock,str(newBlock))       
+                print (inputNumbersCurrent)
+
+                saveGoal = inputNumbersGoal[int(oneBlock)-1]
+#                saveGoalNB = inputNumbersGoal[newBlock-1]
+ #               inputNumbersGoal[int(i)] = newBlock
+                inputNumbersGoal[int(oneBlock)-1] = inputNumbersGoal[newBlock-1]
+                inputNumbersGoal[newBlock-1] = saveGoal    
+                if (oneBlock in inputNumbersGoal):
+                    inputNumbersGoal[inputNumbersGoal.index(oneBlock)]=newBlock
+                print (inputNumbersGoal)
+
+        inputSeqOutput = ""
+        for oneBlock in inputNumbersCurrent:
+            print (oneBlock)
+            inputSeqOutput = inputSeqOutput + str(oneBlock) + " "           
+        for oneBlock in inputNumbersGoal:
+            print (oneBlock)
+            inputSeqOutput = inputSeqOutput + str(oneBlock) + " "                      
+        print(len(inputSeqOutput))
+        return inputSeqOutput[0:len(inputSeqOutput)-1],outputSeqOutput
+
+    def generalizeInputOutputFiles(self):
+        with open('input', 'r', encoding='utf-8') as f:
+            lines_in = f.read().split('\n')
+            
+        with open('output', 'r', encoding='utf-8') as f:
+            lines_out = f.read().split('\n')
+        i = 0
+        for line in lines_in:
+            if (len(line)>0):
+                inp,outp = self._generalizeInputDataset(line,lines_out[i])
+                self.inputs_generalized.append(inp)
+                self.outputs_generalized.append(outp)
+            i = i + 1            
+        file = open ('input_gen',"w")
+        for oneItem in self.inputs_generalized:
+            oneItem = self._padInputWithCharacter(oneItem,'0')
+            file.write(oneItem + "\n")
+        file.close()
+        file = open('output_gen',"w")
+        for oneItem in self.outputs_generalized:
+            file.write(oneItem + "\n")
+        file.close()
+        return True
+
+         
 if __name__ == '__main__':    
     bwstates_path = '/Users/rgarzon/Documents/Projects/Ruben/phD/Repository/LSTMs/Blocksworld/GENERATOR/bwstates.1/bwstates'
     bwopt_path = '/Users/rgarzon/Documents/Projects/Ruben/phD/Repository/LSTMs/Blocksworld/BWOPT/optimal/bwopt'    
@@ -197,5 +277,6 @@ if __name__ == '__main__':
     bwgenerator = BW_data_generator(bwstates_path,bwopt_path,numBlocks)
     numSequences = 10000
     bwgenerator.generateInputAndOutputs(numSequences)
+    bwgenerator.generalizeInputOutputFiles()
     bwgenerator.generateVocabulary()
     
